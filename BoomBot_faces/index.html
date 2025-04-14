@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boom Bot Mood Changer</title>
+  <style>
+    #moodImage {
+      width: 200px;
+      height: auto;
+    }
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <h1>Boom Bot Mood Changer</h1>
+  
+  <!-- Dropdown to select mood -->
+  <select id="moodSelector" onchange="changeMood()">
+    <option value="happy">Happy</option>
+    <option value="sad">Sad</option>
+    <option value="angry">Angry</option>
+    <option value="laughing">Laughing</option>
+  </select>
+
+  <!-- Image placeholder for Boom Bot -->
+  <img id="moodImage" src="smiley.jpg" alt="Boom Bot Mood">
+
+  <script>
+    // Object containing mood images
+    const moodImages = {
+      happy: "smiley.jpg", // Replace with the actual URL or path for happy mood image
+      sad: "sad.jpg",     // Replace with the actual URL or path for sad mood image
+      angry: "angry.jpg", // Replace with the actual URL or path for angry mood image
+      laughing: "laughing.jpg" // Replace with the actual URL or path for laughing mood image
+    };
+
+    // Function to change the mood based on dropdown selection
+    function changeMood() {
+      const selectedMood = document.getElementById("moodSelector").value;
+      const moodImage = document.getElementById("moodImage");
+      
+      // Update image source based on selected mood
+      moodImage.src = moodImages[selectedMood];
+    }
+  </script>
+</body>
+</html>
