@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hexagonal Smiley Face with Changing Moods</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #e5e3d6;
+            font-family: Arial, sans-serif;
+        }
+        
+        .container {
+            width: 400px;
+            height: 400px;
+            position: relative;
+        }
+        
+        .mood-label {
+            position: absolute;
+            bottom: -40px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #4A2C0B;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <svg viewBox="0 0 400 400">
+            <!-- White outer border -->
+            <polygon points="200,40 340,130 340,270 200,360 60,270 60,130" 
+                     fill="white" 
+                     stroke="white" 
+                     stroke-width="10" />
+            
+            <!-- Orange border -->
+            <polygon points="200,50 330,135 330,265 200,350 70,265 70,135" 
+                     fill="#F39C12" 
+                     stroke="#F39C12" 
+                     stroke-width="5" />
+            
+            <!-- Dark brown border -->
+            <polygon points="200,60 320,140 320,260 200,340 80,260 80,140" 
+                     fill="#4A2C0B" 
+                     stroke="#4A2C0B" 
+                     stroke-width="3" />
+            
+            <!-- Gray inner border -->
+            <polygon points="200,80 300,150 300,250 200,320 100,250 100,150" 
+                     fill="#7F8C8D" 
+                     stroke="#7F8C8D" 
+                     stroke-width="2" />
+            
+            <!-- Yellow face -->
+            <polygon points="200,100 280,160 280,240 200,300 120,240 120,160" 
+                     fill="#FFEB3B" 
+                     stroke="#FFEB3B" 
+                     stroke-width="1" />
+            
+            <!-- Left eye -->
+            <g id="leftEye">
+                <circle cx="160" cy="185" r="20" fill="#4A2C0B" />
+            </g>
+            
+            <!-- Right eye -->
+            <g id="rightEye">
+                <circle cx="240" cy="185" r="20" fill="#4A2C0B" />
+            </g>
+            
+            <!-- Mouth (will be changed by JS) -->
+            <g id="mouth">
+                <polyline id="mouthPath" points="160,235 180,255 200,235 220,255 240,235" 
+                          fill="none" 
+                          stroke="#4A2C0B" 
+                          stroke-width="8" 
+                          stroke-linecap="round" 
+                          stroke-linejoin="round" />
+            </g>
+            
+            <!-- Eyebrows (initially hidden) -->
+            <g id="leftEyebrow">
+                <!-- Will be populated by JS -->
+            </g>
+            
+            <g id="rightEyebrow">
+                <!-- Will be populated by JS -->
+            </g>
+            
+            <!-- Laugh lines (initially hidden) -->
+            <g id="laughLines" opacity="0">
+                <path d="M120,205 Q130,215 140,205" fill="none" stroke="#4A2C0B" stroke-width="3" stroke-linecap="round" />
+                <path d="M260,205 Q270,215 280,205" fill="none" stroke="#4A2C0B" stroke-width="3" stroke-linecap="round" />
+            </g>
+            
+            <!-- Angry lines (initially hidden) -->
+            <g id="angryLines" opacity="0">
+                <path d="M175,130 Q185,140 195,130" fill="none" stroke="#4A2C0B" stroke-width="3" stroke-linecap="round" />
+                <path d="M205,130 Q215,140 225,130" fill="none" stroke="#4A2C0B" stroke-width="3" stroke-linecap="round" />
+            </g>
+            
+            <!-- Subtle shadow effect -->
+            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="rgba(0,0,0,0.3)" />
+            </filter>
+            
+            <!-- Apply shadow to main hexagon -->
+            <polygon points="200,50 330,135 330,265 200,350 70,265 70,135" 
+                     fill="none" 
+                     filter="url(#shadow)" />
+        </svg>
+        <div class="mood-label" id="moodLabel">Happy</div>
+    </div>
+    
+    <script>
+        // Get elements
+        const leftEye = document.getElementById('leftEye');
+        const rightEye = document.getElementById('rightEye');
+        const mouth = document.getElementById('mouth');
+        const mouthPath = document.getElementById('mouthPath');
+        const leftEyebrow = document.getElementById('leftEyebrow');
+        const rightEyebrow = document.getElementById('rightEyebrow');
+        const laughLines = document.getElementById('laughLines');
+        const angryLines = document.getElementById('angryLines');
+        const moodLabel = document.getElementById('moodLabel');
+        
+        // Moods array
+        const moods = ['happy', 'stoic', 'sad', 'angry', 'laugh'];
+        let currentMoodIndex = 0;
+        
+        // Function to set eyebrows
+        function setEyebrows(type) {
+            // Clear existing eyebrows
+            leftEyebrow.innerHTML = "";
+            rightEyebrow.innerHTML = "";
+            
+            // Add new eyebrows based on type
+            switch(type) {
+                case 'angry':
+                    // Angry eyebrows - slanted down towards center
+                    const leftAngryBrow = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    leftAngryBrow.setAttribute('x1', '140');
+                    leftAngryBrow.setAttribute('y1', '150');
+                    leftAngryBrow.setAttribute('x2', '180');
+                    leftAngryBrow.setAttribute('y2', '165');
+                    leftAngryBrow.setAttribute('stroke', '#4A2C0B');
+                    leftAngryBrow.setAttribute('stroke-width', '8');
+                    leftAngryBrow.setAttribute('stroke-linecap', 'round');
+                    
+                    const rightAngryBrow = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    rightAngryBrow.setAttribute('x1', '260');
+                    rightAngryBrow.setAttribute('y1', '150');
+                    rightAngryBrow.setAttribute('x2', '220');
+                    rightAngryBrow.setAttribute('y2', '165');
+                    rightAngryBrow.setAttribute('stroke', '#4A2C0B');
+                    rightAngryBrow.setAttribute('stroke-width', '8');
+                    rightAngryBrow.setAttribute('stroke-linecap', 'round');
+                    
+                    leftEyebrow.appendChild(leftAngryBrow);
+                    rightEyebrow.appendChild(rightAngryBrow);
+                    break;
+                    
+                case 'sad':
+                    // Sad eyebrows - slanted up towards center
+                    const leftSadBrow = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    leftSadBrow.setAttribute('x1', '140');
+                    leftSadBrow.setAttribute('y1', '165');
+                    leftSadBrow.setAttribute('x2', '180');
+                    leftSadBrow.setAttribute('y2', '155');
+                    leftSadBrow.setAttribute('stroke', '#4A2C0B');
+                    leftSadBrow.setAttribute('stroke-width', '6');
+                    leftSadBrow.setAttribute('stroke-linecap', 'round');
+                    
+                    const rightSadBrow = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    rightSadBrow.setAttribute('x1', '260');
+                    rightSadBrow.setAttribute('y1', '165');
+                    rightSadBrow.setAttribute('x2', '220');
+                    rightSadBrow.setAttribute('y2', '155');
+                    rightSadBrow.setAttribute('stroke', '#4A2C0B');
+                    rightSadBrow.setAttribute('stroke-width', '6');
+                    rightSadBrow.setAttribute('stroke-linecap', 'round');
+                    
+                    leftEyebrow.appendChild(leftSadBrow);
+                    rightEyebrow.appendChild(rightSadBrow);
+                    break;
+                    
+                case 'stoic':
+                    // Stoic eyebrows - straight
+                    const leftStoicBrow = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    leftStoicBrow.setAttribute('x1', '140');
+                    leftStoicBrow.setAttribute('y1', '155');
+                    leftStoicBrow.setAttribute('x2', '180');
+                    leftStoicBrow.setAttribute('y2', '155');
+                    leftStoicBrow.setAttribute('stroke', '#4A2C0B');
+                    leftStoicBrow.setAttribute('stroke-width', '6');
+                    leftStoicBrow.setAttribute('stroke-linecap', 'round');
+                    
+                    const rightStoicBrow = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    rightStoicBrow.setAttribute('x1', '220');
+                    rightStoicBrow.setAttribute('y1', '155');
+                    rightStoicBrow.setAttribute('x2', '260');
+                    rightStoicBrow.setAttribute('y2', '155');
+                    rightStoicBrow.setAttribute('stroke', '#4A2C0B');
+                    rightStoicBrow.setAttribute('stroke-width', '6');
+                    rightStoicBrow.setAttribute('stroke-linecap', 'round');
+                    
+                    leftEyebrow.appendChild(leftStoicBrow);
+                    rightEyebrow.appendChild(rightStoicBrow);
+                    break;
+                    
+                case 'laugh':
+                    // Happy lifted eyebrows
+                    const leftLaughBrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    leftLaughBrow.setAttribute('d', 'M140,155 Q160,140 180,155');
+                    leftLaughBrow.setAttribute('fill', 'none');
+                    leftLaughBrow.setAttribute('stroke', '#4A2C0B');
+                    leftLaughBrow.setAttribute('stroke-width', '6');
+                    leftLaughBrow.setAttribute('stroke-linecap', 'round');
+                    
+                    const rightLaughBrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    rightLaughBrow.setAttribute('d', 'M220,155 Q240,140 260,155');
+                    rightLaughBrow.setAttribute('fill', 'none');
+                    rightLaughBrow.setAttribute('stroke', '#4A2C0B');
+                    rightLaughBrow.setAttribute('stroke-width', '6');
+                    rightLaughBrow.setAttribute('stroke-linecap', 'round');
+                    
+                    leftEyebrow.appendChild(leftLaughBrow);
+                    rightEyebrow.appendChild(rightLaughBrow);
+                    break;
+                    
+                default:
+                    // Happy eyebrows - slight upward curve
+                    const leftHappyBrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    leftHappyBrow.setAttribute('d', 'M140,155 Q160,145 180,155');
+                    leftHappyBrow.setAttribute('fill', 'none');
+                    leftHappyBrow.setAttribute('stroke', '#4A2C0B');
+                    leftHappyBrow.setAttribute('stroke-width', '5');
+                    leftHappyBrow.setAttribute('stroke-linecap', 'round');
+                    
+                    const rightHappyBrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    rightHappyBrow.setAttribute('d', 'M220,155 Q240,145 260,155');
+                    rightHappyBrow.setAttribute('fill', 'none');
+                    rightHappyBrow.setAttribute('stroke', '#4A2C0B');
+                    rightHappyBrow.setAttribute('stroke-width', '5');
+                    rightHappyBrow.setAttribute('stroke-linecap', 'round');
+                    
+                    leftEyebrow.appendChild(leftHappyBrow);
+                    rightEyebrow.appendChild(rightHappyBrow);
+                    break;
+            }
+        }
+        
+        // Function to set eyes
+        function setEyes(type) {
+            // Clear current eyes
+            leftEye.innerHTML = "";
+            rightEye.innerHTML = "";
+            
+            // Add new eyes based on type
+            switch(type) {
+                case 'angry':
+                    // Angry eyes - narrowed
+                    const leftAngryEye = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+                    leftAngryEye.setAttribute('cx', '160');
+                    leftAngryEye.setAttribute('cy', '185');
+                    leftAngryEye.setAttribute('rx', '20');
+                    leftAngryEye.setAttribute('ry', '10');
+                    leftAngryEye.setAttribute('fill', '#4A2C0B');
+                    
+                    const rightAngryEye = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+                    rightAngryEye.setAttribute('cx', '240');
+                    rightAngryEye.setAttribute('cy', '185');
+                    rightAngryEye.setAttribute('rx', '20');
+                    rightAngryEye.setAttribute('ry', '10');
+                    rightAngryEye.setAttribute('fill', '#4A2C0B');
+                    
+                    leftEye.appendChild(leftAngryEye);
+                    rightEye.appendChild(rightAngryEye);
+                    break;
+                    
+                case 'sad':
+                    // Sad eyes - droopy
+                    const leftSadEye = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+                    leftSadEye.setAttribute('cx', '160');
+                    leftSadEye.setAttribute('cy', '185');
+                    leftSadEye.setAttribute('rx', '20');
+                    leftSadEye.setAttribute('ry', '15');
+                    leftSadEye.setAttribute('fill', '#4A2C0B');
+                    
+                    const rightSadEye = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+                    rightSadEye.setAttribute('cx', '240');
+                    rightSadEye.setAttribute('cy', '185');
+                    rightSadEye.setAttribute('rx', '20');
+                    rightSadEye.setAttribute('ry', '15');
+                    rightSadEye.setAttribute('fill', '#4A2C0B');
+                    
+                    leftEye.appendChild(leftSadEye);
+                    rightEye.appendChild(rightSadEye);
+                    break;
+                    
+                case 'laugh':
+                    // Laugh eyes - closed happy eyes
+                    const leftLaughEye = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    leftLaughEye.setAttribute('d', 'M140,185 Q160,165 180,185');
+                    leftLaughEye.setAttribute('fill', 'none');
+                    leftLaughEye.setAttribute('stroke', '#4A2C0B');
+                    leftLaughEye.setAttribute('stroke-width', '6');
+                    leftLaughEye.setAttribute('stroke-linecap', 'round');
+                    
+                    const rightLaughEye = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    rightLaughEye.setAttribute('d', 'M220,185 Q240,165 260,185');
+                    rightLaughEye.setAttribute('fill', 'none');
+                    rightLaughEye.setAttribute('stroke', '#4A2C0B');
+                    rightLaughEye.setAttribute('stroke-width', '6');
+                    rightLaughEye.setAttribute('stroke-linecap', 'round');
+                    
+                    leftEye.appendChild(leftLaughEye);
+                    rightEye.appendChild(rightLaughEye);
+                    break;
+                    
+                default:
+                    // Regular circular eyes
+                    const leftCircleEye = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    leftCircleEye.setAttribute('cx', '160');
+                    leftCircleEye.setAttribute('cy', '185');
+                    leftCircleEye.setAttribute('r', '20');
+                    leftCircleEye.setAttribute('fill', '#4A2C0B');
+                    
+                    const rightCircleEye = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    rightCircleEye.setAttribute('cx', '240');
+                    rightCircleEye.setAttribute('cy', '185');
+                    rightCircleEye.setAttribute('r', '20');
+                    rightCircleEye.setAttribute('fill', '#4A2C0B');
+                    
+                    leftEye.appendChild(leftCircleEye);
+                    rightEye.appendChild(rightCircleEye);
+                    break;
+            }
+        }
+        
+        // Function to set mouth
+        function setMouth(type) {
+            switch(type) {
+                case 'happy':
+                    // Happy mouth - W shape
+                    mouthPath.setAttribute('points', '160,235 180,255 200,235 220,255 240,235');
+                    mouthPath.setAttribute('stroke-width', '8');
+                    break;
+                    
+                case 'stoic':
+                    // Stoic mouth - straight line
+                    mouthPath.setAttribute('points', '160,235 200,235 240,235');
+                    mouthPath.setAttribute('stroke-width', '8');
+                    break;
+                    
+                case 'sad':
+                    // Sad mouth - inverted curve
+                    mouthPath.setAttribute('points', '');
+                    mouthPath.setAttribute('d', 'M160,255 Q200,235 240,255');
+                    break;
+                    
+                case 'angry':
+                    // Angry mouth - downward zigzag
+                    mouthPath.setAttribute('points', '');
+                    mouthPath.setAttribute('d', 'M160,235 Q200,265 240,235');
+                    mouthPath.setAttribute('stroke-width', '8');
+                    break;
+                    
+                case 'laugh':
+                    // Laugh mouth - big open smile
+                    mouthPath.setAttribute('points', '');
+                    mouthPath.setAttribute('d', 'M160,235 Q200,290 240,235');
+                    mouthPath.setAttribute('stroke-width', '8');
+                    break;
+            }
+        }
+        
+        // Function to change mood
+        function changeMood(mood) {
+            // Reset all special elements
+            laughLines.setAttribute('opacity', '0');
+            angryLines.setAttribute('opacity', '0');
+            
+            // Set specific mood
+            switch(mood) {
+                case 'happy':
+                    setEyes('happy');
+                    setMouth('happy');
+                    setEyebrows('happy');
+                    moodLabel.textContent = "Happy";
+                    moodLabel.style.color = "#4A2C0B";
+                    break;
+                    
+                case 'stoic':
+                    setEyes('stoic');
+                    setMouth('stoic');
+                    setEyebrows('stoic');
+                    moodLabel.textContent = "Stoic";
+                    moodLabel.style.color = "#7F8C8D";
+                    break;
+                    
+                case 'sad':
+                    setEyes('sad');
+                    setMouth('sad');
+                    setEyebrows('sad');
+                    moodLabel.textContent = "Sad";
+                    moodLabel.style.color = "#3498DB";
+                    break;
+                    
+                case 'angry':
+                    setEyes('angry');
+                    setMouth('angry');
+                    setEyebrows('angry');
+                    angryLines.setAttribute('opacity', '1');
+                    moodLabel.textContent = "Angry";
+                    moodLabel.style.color = "#E74C3C";
+                    break;
+                    
+                case 'laugh':
+                    setEyes('laugh');
+                    setMouth('laugh');
+                    setEyebrows('laugh');
+                    laughLines.setAttribute('opacity', '1');
+                    moodLabel.textContent = "Laugh";
+                    moodLabel.style.color = "#F39C12";
+                    break;
+            }
+        }
+        
+        // Initialize with happy mood
+        changeMood('happy');
+        
+        // Change mood every 5 seconds
+        setInterval(() => {
+            currentMoodIndex = (currentMoodIndex + 1) % moods.length;
+            changeMood(moods[currentMoodIndex]);
+            
+            // Add transition animation
+            const container = document.querySelector('.container');
+            container.style.transition = 'transform 0.3s ease-in-out';
+            container.style.transform = 'scale(1.05)';
+            
+            setTimeout(() => {
+                container.style.transform = 'scale(1)';
+            }, 300);
+        }, 5000);
+        
+        // Add mouse tracking for interactive feel
+        document.addEventListener('mousemove', (e) => {
+            const container = document.querySelector('.container');
+            const rect = container.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            // Calculate angle between cursor and center
+            const dx = e.clientX - centerX;
+            const dy = e.clientY - centerY;
+            
+            // Limit the movement to a small range
+            const maxMove = 5;
+            const moveX = Math.max(-maxMove, Math.min(maxMove, dx / 30));
+            const moveY = Math.max(-maxMove, Math.min(maxMove, dy / 30));
+            
+            // Only apply tracking in happy and laugh moods
+            const currentMood = moods[currentMoodIndex];
+            if (currentMood === 'happy' || currentMood === 'laugh') {
+                leftEye.setAttribute('transform', `translate(${moveX}, ${moveY})`);
+                rightEye.setAttribute('transform', `translate(${moveX}, ${moveY})`);
+            }
+        });
+    </script>
+</body>
+</html>
